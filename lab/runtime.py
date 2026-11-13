@@ -29,13 +29,14 @@ class Cluster:
         if len(set(self.clients+self.peers))!=6: raise RuntimeError('port collision; retry run')
     def start(self,i):
         log=open(self.folder/f'n{i+1}.log','ab'); self.logs.append(log)
-        cluster=','.join(f'n{j+1}=http://127.0.0.1:{p}' for j,p in enumerate(self.peers))
+        advertised=getattr(self,'advertised',self.peers)
+        cluster=','.join(f'n{j+1}=http://127.0.0.1:{p}' for j,p in enumerate(advertised))
         env=os.environ.copy(); env['GOMAXPROCS']='2'; env['GOMEMLIMIT']='128MiB'
         args=[self.binary,'--name',f'n{i+1}','--data-dir',str(self.folder/f'n{i+1}'),
               '--listen-client-urls',f'http://127.0.0.1:{self.clients[i]}',
               '--advertise-client-urls',f'http://127.0.0.1:{self.clients[i]}',
               '--listen-peer-urls',f'http://127.0.0.1:{self.peers[i]}',
-              '--initial-advertise-peer-urls',f'http://127.0.0.1:{self.peers[i]}',
+              '--initial-advertise-peer-urls',f'http://127.0.0.1:{advertised[i]}',
               '--initial-cluster',cluster,'--initial-cluster-token','synthetic-ds-lab',
               '--heartbeat-interval','100','--election-timeout','1000',
               '--quota-backend-bytes','67108864','--snapshot-count','1000','--log-level','warn']

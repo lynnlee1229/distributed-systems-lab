@@ -56,7 +56,7 @@ def check():
     report=json.loads((SITE/'results/experiments.json').read_text())
     if len(report['repetitions'])!=3:errors.append('baseline must have 3 repetitions')
     if any(not r[k].get('assertions_passed') for r in report['repetitions'] for k in ('quorum','retry','fencing')):errors.append('failed evidence assertion')
-    if len(pages)!=25:errors.append(f'expected 24 bilingual pages + redirect, got {len(pages)}')
+    if len(pages)!=31:errors.append(f'expected 30 bilingual pages + redirect, got {len(pages)}')
     if errors:raise SystemExit('\n'.join(errors))
     print(f'PASS: {len(pages)} pages, bilingual deep links, alternates, privacy patterns, manifest hashes, complete standalone ZIP, three real repetitions.')
 if __name__=='__main__':check()

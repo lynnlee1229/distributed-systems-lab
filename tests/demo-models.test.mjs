@@ -1,0 +1,12 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {causalRelation,initialQuorum,quorumStep,retryOutcome,initialFence,fenceStep} from '../web/demo-models.mjs';
+test('causal reachability includes transitivity but not timestamp guesses',()=>{assert.equal(causalRelation('A2','C3').relation,'before');assert.equal(causalRelation('C3','A2').relation,'after');assert.equal(causalRelation('A3','B1').relation,'concurrent');});
+test('unreachable leader needs replacement even with a majority',()=>{let s=quorumStep(initialQuorum(),'write');s=quorumStep(s,'toggle',0);s=quorumStep(s,'write');assert.equal(s.result,'leader-unavailable');assert.equal(s.value,1);s=quorumStep(s,'elect');s=quorumStep(s,'write');assert.equal(s.value,2);assert.equal(s.copies[0],1);s=quorumStep(s,'toggle',0);s=quorumStep(s,'sync');assert.deepEqual(s.copies,[2,2,2]);});
+test('one reachable voter cannot elect or commit',()=>{let s=quorumStep(quorumStep(initialQuorum(),'toggle',1),'toggle',2);s=quorumStep(s,'write');assert.equal(s.result,'no-quorum');s=quorumStep(s,'elect');assert.equal(s.result,'no-quorum');assert.equal(s.value,0);});
+test('timeout, receipt and retry identity are distinct dimensions',()=>{const r=retryOutcome({delay:800,deadline:150,retries:2,sameId:true});assert.equal(r.client,'unknown');assert.equal(r.plain,3);assert.equal(r.dedup,1);assert.equal(retryOutcome({delay:800,deadline:1000}).client,'ok');assert.equal(retryOutcome({retries:2,sameId:false}).dedup,3);});
+const acquire=()=>['pause','expire','acquire'].reduce((s,a)=>fenceStep(s,a),initialFence());
+test('late A after B is fenced while plain mode overwrites',()=>{const s=fenceStep(fenceStep(acquire(),'writeB'),'writeA');assert.equal(s.result,'old-rejected');assert.equal(s.plain,'A-late');assert.equal(s.fenced,'B-current');assert.equal(s.high,11);});
+test('high-water fence accepts A before it has observed B',()=>{let s=fenceStep(acquire(),'writeA');assert.equal(s.result,'old-accepted');assert.equal(s.fenced,'A-late');s=fenceStep(s,'writeB');assert.equal(s.fenced,'B-current');assert.equal(s.high,11);});
+test('invalid fencing order cannot manufacture an owner or effect',()=>{const s=fenceStep(initialFence(),'writeB');assert.equal(s.result,'invalid-order');assert.equal(s.owner,'A');assert.equal(s.fenced,'A-initial');});
+
+test('a lone stale copy cannot catch up from an unavailable source',()=>{const s={...initialQuorum(),online:[true,false,false],value:2,copies:[0,2,2]};const next=quorumStep(s,'sync');assert.equal(next.result,'no-quorum');assert.equal(next.copies[0],0);});

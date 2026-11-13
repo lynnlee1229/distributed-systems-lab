@@ -4,6 +4,8 @@
 cd distributed-systems-lab
 python3 scripts/install_etcd.py
 python3 scripts/run_all.py --repeats 3 --out build/my-results
+python3 scripts/run_network.py --repeats 3 --out build/my-network.json
+node tests/demo-models.test.mjs
 node tests/checker.test.mjs
 python3 -m unittest discover -s tests -v
 python3 scripts/build_site.py
@@ -13,3 +15,4 @@ python3 -m http.server 18915 --directory build/site</code></pre><p>打开 <code>
 <section><h2>进程所有权与有界清理</h2><p>运行器通过原子 mkdir 取得高资源锁。在共享编写工作区使用已有 ops 锁；独立下载与 CI 使用 build 下的本地锁。若被占用就停止，不删除他人锁。仅向自己创建的子进程发送信号，并在清理时关闭句柄。不会修改宿主防火墙或路由，不要求 root，不清理容器，不杀其他任务进程。</p><p>原始节点日志、WAL 与 SQLite 下游状态保留在忽略的 <code>build/runs/</code> 中。导出器只构造指定合成字段，不复制日志，也不扫描宿主。若运行被中断，清理自己产物前先核对 owner 与所属进程。不要按年龄删除另一个任务的锁。</p></section>
 <section><h2>阅读或修改实现</h2><ul><li><code>lab/runtime.py</code>：回环节点、信号、JSON gateway 与清理。</li><li><code>lab/services.py</code>：计数/去重原子事务与 SQLite fence。</li><li><code>lab/worker.py</code>：恢复后执行迟到写的独立进程。</li><li><code>scripts/run_all.py</code>：调度、断言、重复与报告结构。</li><li><code>web/checker.mjs</code>：有界搜索；<code>tests/checker.test.mjs</code>：独立全排列基准。</li></ul><p>扩大故障范围前先读源码。断言失败是要调查的证据，不是削弱不变量的理由。保留失败原始运行，对照版本、拓扑和条件。</p></section>
 <section><h2>尚未执行的扩展</h2><p>数据包级非对称分区、多主机时钟不确定性、磁盘损坏、灾难还原、成员变更、拜占庭故障、跨外部系统恰好一次协议都不在本版范围。代码提供小而明确的学习面，不是生产客户端库。</p></section>
+<section><h2>互动与课程映射练习</h2><p><a href="playground.html">七个交互场景</a>让概念可以操作；<a href="network.html">真实 Peer 代理练习</a>保持节点存活，仅切断连接；<a href="resources.html">可检索的 MIT 6.5840 地图</a>把七个单元对应到具体官方材料及原创可运行练习。Linux CI 同时执行原有机制与新增网络对照。</p></section>
