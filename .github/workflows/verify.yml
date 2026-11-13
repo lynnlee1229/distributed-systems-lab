@@ -1,0 +1,25 @@
+name: Verify standalone lab
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  real-experiments:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python3 scripts/install_etcd.py
+      - run: python3 scripts/run_all.py --repeats 1 --out build/ci-results
+      - run: node tests/checker.test.mjs
+      - run: python3 -m unittest discover -s tests -v
+      - run: python3 scripts/build_site.py && python3 scripts/check_site.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-ci-evidence
+          path: build/ci-results/*.json

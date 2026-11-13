@@ -1,0 +1,9 @@
+[
+ {"slug":"01-assumptions","en":"System & failure assumptions","zh":"系统与故障假设","summary_en":"Name the fault model before making a promise.","summary_zh":"先说明故障模型，再谈能做出的承诺。","time":"25–40 min"},
+ {"slug":"02-time","en":"Time, causality & histories","zh":"时间、因果与并发历史","summary_en":"Separate a timestamp from an ordering constraint.","summary_zh":"区分时间戳与真正的顺序约束。","time":"30–45 min"},
+ {"slug":"03-consistency","en":"Replication & consistency","zh":"复制与一致性模型","summary_en":"Define which observations a shared object permits.","summary_zh":"定义共享对象允许哪些观测。","time":"35–50 min"},
+ {"slug":"04-consensus","en":"State machines, Raft & quorum","zh":"状态机复制、Raft 与多数派","summary_en":"Follow a decision through election, commit and recovery.","summary_zh":"跟踪选主、提交与恢复中的共同决策。","time":"45–60 min"},
+ {"slug":"05-retries","en":"RPC, unknown outcomes & retries","zh":"RPC、未知结果与幂等","summary_en":"Keep a retry from becoming a second effect.","summary_zh":"避免一次重试变成第二次副作用。","time":"35–50 min"},
+ {"slug":"06-fencing","en":"Leases, locks & fencing","zh":"租约、锁与 Fencing Token","summary_en":"Stop stale generations at the receiving resource.","summary_zh":"在接收资源处阻止旧代次的迟到写。","time":"40–55 min"},
+ {"slug":"07-recovery","en":"Recovery & evidence","zh":"故障恢复与证据","summary_en":"Reconcile unknowns and preserve the scope of a claim.","summary_zh":"核对未知结果，保留结论的适用范围。","time":"30–45 min"}
+]

@@ -1,0 +1,11 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {check,fixtures} from '../web/checker.mjs';
+test('overlap permits an old read and produces a witness',()=>{assert.equal(check(fixtures.concurrent).status,'pass');assert.deepEqual(check(fixtures.concurrent).witness,['r1','w1','r2']);});
+test('real time separates linearizable and sequential consistency',()=>{assert.equal(check(fixtures.stale).status,'fail');assert.equal(check(fixtures.stale,{model:'sequential'}).status,'pass');});
+test('unwritten read fails either model',()=>{for(const model of ['linearizable','sequential'])assert.equal(check(fixtures.impossible,{model}).status,'fail');});
+test('limits never pass',()=>{assert.equal(check(fixtures.concurrent,{budget:1}).status,'inconclusive');const h=Array.from({length:13},(_,i)=>({id:''+i,client:'A',type:'write',value:i,start:i*2,end:i*2+1}));assert.equal(check(h).status,'inconclusive');});
+test('reject malformed, pending and overlapping client histories',()=>{for(const h of [[],[{}],[{...fixtures.stale[0],end:null}],[fixtures.concurrent[0],{...fixtures.concurrent[1],client:'A'}],[{...fixtures.stale[0],outcome:'unknown'}]])assert.equal(check(h).status,'invalid');});
+// Independent unpruned permutation oracle for small seeded histories.
+function oracle(h,model){function go(left,state,order){if(!left.length)return true;return left.some((o,i)=>{if(o.type==='read'&&o.value!==state)return false;if(order.some(p=>o.end<=p.start&&(model==='linearizable'||o.client===p.client)))return false;return go(left.filter((_,j)=>i!==j),o.type==='write'?o.value:state,[...order,o]);});}return go(h,0,[]);}
+test('matches unpruned oracle for 160 seeded small checks',()=>{let seed=71;const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed;};for(let k=0;k<80;k++){const h=Array.from({length:5},(_,i)=>{const s=rand()%10;return{id:'o'+i,client:'c'+i,type:(rand()>>>8)%2?'read':'write',value:rand()%3,start:s,end:s+1+rand()%5};});for(const model of ['linearizable','sequential'])assert.equal(check(h,{model}).status,oracle(h,model)?'pass':'fail');}});
+
+test('sequential model retains client program order',()=>{const h=fixtures.stale.map(o=>({...o,client:'A'}));assert.equal(check(h,{model:'sequential'}).status,'fail');});
