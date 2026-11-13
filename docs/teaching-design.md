@@ -1,6 +1,6 @@
 # Teaching design decisions
 
-2026-11-14 user feedback: the first release felt too theoretical; interaction, figures and concrete cases should make the material easier to understand.
+Teaching intent: make the consequences of delay, failure and concurrency observable through relevant decisions, concrete cases and manipulable figures.
 
 This project now leads each chapter with one concrete case and one manipulable activity. A learner changes a relevant condition, predicts an outcome, sees state/feedback, and then reads the formal explanation. Original diagrams support the same concept rather than decorating a text-only lesson. A separate interactive classroom provides direct links to every scene.
 
